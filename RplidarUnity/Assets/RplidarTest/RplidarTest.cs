@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class RplidarTest : MonoBehaviour {
+public class RplidarTest : MonoBehaviour
+{
 
     public string port;
 
@@ -15,34 +16,49 @@ public class RplidarTest : MonoBehaviour {
     }
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
+        getAllData();
 
-        
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
 
     private void OnGUI()
     {
+
+        DrawButton("BEGIN", () =>
+        {
+            if (string.IsNullOrEmpty(port))
+            {
+                return;
+            }
+
+            RplidarBinding.OnConnect(port);
+            RplidarBinding.StartMotor();
+            RplidarBinding.StartScan();
+        });
+
         DrawButton("Connect", () =>
         {
             if (string.IsNullOrEmpty(port))
             {
                 return;
             }
-            
+
             int result = RplidarBinding.OnConnect(port);
 
-            Debug.Log("Connect on " + port +" result:"+ result);
+            Debug.Log("Connect on " + port + " result:" + result);
         });
 
         DrawButton("DisConnect", () =>
         {
             bool r = RplidarBinding.OnDisconnect();
-            Debug.Log("Disconnect:"+r);
+            Debug.Log("Disconnect:" + r);
         });
 
         DrawButton("StartScan", () =>
@@ -82,24 +98,53 @@ public class RplidarTest : MonoBehaviour {
             int count = RplidarBinding.GetData(ref data);
 
             Debug.Log("GrabData:" + count);
-            if(count > 0)
+
+            print("count " + count);
+            if (count > 0)
             {
-                for(int i = 0; i < 20; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    Debug.Log("d:" + data[i].distant + " " + data[i].quality + " " + data[i].syncBit + " " + data[i].theta);
+                    // Debug.Log("d:" + data[i].distant + " " + data[i].theta);
+                    if (data[i].theta > 265 && data[i].theta < 275)
+                    {
+                        Debug.Log("d:" + data[i].distant + " " + data[i].theta);
+                    }
                 }
             }
-
         });
     }
 
-    void DrawButton(string label,Action callback)
+    void DrawButton(string label, Action callback)
     {
         if (GUILayout.Button(label, GUILayout.Width(200), GUILayout.Height(75)))
         {
-            if(callback != null)
+            if (callback != null)
             {
                 callback.Invoke();
+            }
+        }
+    }
+
+    void getAllData()
+    {
+        RplidarBinding.OnConnect(port);
+        RplidarBinding.StartMotor();
+        RplidarBinding.StartScan();
+
+        int count = RplidarBinding.GetData(ref data);
+
+        Debug.Log("GrabData:" + count);
+
+        print("count " + count);
+        if (count > 0)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                // Debug.Log("d:" + data[i].distant + " " + data[i].theta);
+                if (data[i].theta > 265 && data[i].theta < 275)
+                {
+                    Debug.Log("d:" + data[i].distant + " " + data[i].theta);
+                }
             }
         }
     }

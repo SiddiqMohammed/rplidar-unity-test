@@ -10,7 +10,7 @@ public class RplidarMap : MonoBehaviour {
     public bool m_onscan = false;
 
     private LidarData[] m_data;
-    public string COM = "COM3";
+    public string COM = "COM8";
 
     public Mesh m_mesh;
     private List<Vector3> m_vert;

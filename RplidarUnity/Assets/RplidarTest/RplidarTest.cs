@@ -6,7 +6,24 @@ using System;
 public class RplidarTest : MonoBehaviour
 {
 
-    public string port;
+    List<int> angles_list_0 = new List<int>();
+    List<int> angles_list_1 = new List<int>();
+
+
+    // distances of each touchpoint (in mm)
+    int[] tp_distances = { 360, 240 };
+    int[] tp_angles = { 260, 300 };
+
+    double[] filtered_val = { 0, 0 };
+
+    // number of times the value has to be repeated to be registered as precise
+    int dist_precision = 1;
+
+    // tolerances for the distance gives
+    int tp_dist_tolerance = 20;
+    int tp_angle_tolerance = 5;
+
+    public string port = "COM8";
 
     private LidarData[] data;
 
@@ -18,6 +35,9 @@ public class RplidarTest : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        RplidarBinding.OnConnect(port);
+        RplidarBinding.StartMotor();
+        RplidarBinding.StartScan();
         getAllData();
 
     }
@@ -25,7 +45,7 @@ public class RplidarTest : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        getAllData();
     }
 
     private void OnGUI()
@@ -95,22 +115,7 @@ public class RplidarTest : MonoBehaviour
 
         DrawButton("GrabData", () =>
         {
-            int count = RplidarBinding.GetData(ref data);
-
-            Debug.Log("GrabData:" + count);
-
-            print("count " + count);
-            if (count > 0)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    // Debug.Log("d:" + data[i].distant + " " + data[i].theta);
-                    if (data[i].theta > 265 && data[i].theta < 275)
-                    {
-                        Debug.Log("d:" + data[i].distant + " " + data[i].theta);
-                    }
-                }
-            }
+            getAllData();
         });
     }
 
@@ -127,25 +132,46 @@ public class RplidarTest : MonoBehaviour
 
     void getAllData()
     {
-        RplidarBinding.OnConnect(port);
-        RplidarBinding.StartMotor();
-        RplidarBinding.StartScan();
-
         int count = RplidarBinding.GetData(ref data);
 
-        Debug.Log("GrabData:" + count);
-
-        print("count " + count);
+        // Debug.Log("GrabData:" + count);
+        // print("count " + count);
         if (count > 0)
         {
             for (int i = 0; i < count; i++)
             {
-                // Debug.Log("d:" + data[i].distant + " " + data[i].theta);
-                if (data[i].theta > 265 && data[i].theta < 275)
+                if ((data[i].theta > tp_angles[0] - tp_angle_tolerance) && (data[i].theta < tp_angles[0] + tp_angle_tolerance))
                 {
-                    Debug.Log("d:" + data[i].distant + " " + data[i].theta);
+                    angles_list_0.Add((int)data[i].distant);
+
+                    if (angles_list_0.Count > dist_precision)
+                    {
+                        float avg_val = average(angles_list_0);
+                        filtered_val[0] = (0.8 * filtered_val[0]) + (0.2 * avg_val);
+
+                        if ((filtered_val[0] < tp_distances[0] + tp_dist_tolerance) && (filtered_val[0] < tp_distances[0] - tp_dist_tolerance))
+                        {
+
+                            Debug.Log("d:" + data[i].distant + " " + data[i].theta);
+                        }
+                        angles_list_0.Clear();
+                    }
+
+                    // average(da)
+                    // print(angles_list_0.Count);
                 }
             }
         }
+    }
+
+    float average(List<int> angle_lists)
+    {
+        var sum = 0;
+
+        for (var i = 0; i < angle_lists.Count; i++)
+        {
+            sum += angle_lists[i];
+        }
+        return sum / angle_lists.Count;
     }
 }

@@ -8,13 +8,14 @@ public class RplidarTest : MonoBehaviour
 
     List<int> angles_list_0 = new List<int>();
     List<int> angles_list_1 = new List<int>();
+    List<int> angles_list_2 = new List<int>();
 
 
     // distances of each touchpoint (in mm)
-    int[] tp_distances = { 360, 240 };
-    int[] tp_angles = { 260, 300 };
+    int[] tp_distances = { 360, 270, 220};
+    int[] tp_angles = { 270, 90, 0 };
 
-    double[] filtered_val = { 0, 0 };
+    double[] filtered_val = { 0, 0, 0};
 
     // number of times the value has to be repeated to be registered as precise
     int dist_precision = 5;
@@ -26,6 +27,8 @@ public class RplidarTest : MonoBehaviour
     public string port = "COM8";
 
     private LidarData[] data;
+
+    public int button_clicked = 0;
 
     private void Awake()
     {
@@ -149,19 +152,50 @@ public class RplidarTest : MonoBehaviour
                         float avg_val = average(angles_list_0);
                         filtered_val[0] = (0.8 * filtered_val[0]) + (0.2 * avg_val);
 
-
                         if ((filtered_val[0] > tp_distances[0] - tp_dist_tolerance) && (filtered_val[0] < tp_distances[0] + tp_dist_tolerance))
                         {
-
-                            print("filtered_val " + filtered_val[0]);
+                            // print("filtered_val " + filtered_val[0]);
                             // Debug.Log("d:" + data[i].distant);
-                            print("Click at 1");
+                            // print("Click at 1");
+                            button_clicked = 1;
                         }
                         angles_list_0.Clear();
                     }
 
-                    // average(da)
-                    // print(angles_list_0.Count);
+                }
+
+                if ((data[i].theta > tp_angles[1] - tp_angle_tolerance) && (data[i].theta < tp_angles[1] + tp_angle_tolerance))
+                {
+                    angles_list_1.Add((int)data[i].distant);
+
+                    if (angles_list_1.Count > dist_precision)
+                    {
+                        float avg_val = average(angles_list_1);
+                        filtered_val[1] = (0.8 * filtered_val[1]) + (0.2 * avg_val);
+
+                        if ((filtered_val[1] > tp_distances[1] - tp_dist_tolerance) && (filtered_val[1] < tp_distances[1] + tp_dist_tolerance))
+                        {
+                            button_clicked = 2;
+                        }
+                        angles_list_1.Clear();
+                    }
+                }
+
+                if ((data[i].theta > tp_angles[2] - tp_angle_tolerance) && (data[i].theta < tp_angles[2] + tp_angle_tolerance))
+                {
+                    angles_list_2.Add((int)data[i].distant);
+
+                    if (angles_list_2.Count > dist_precision)
+                    {
+                        float avg_val = average(angles_list_2);
+                        filtered_val[2] = (0.8 * filtered_val[2]) + (0.2 * avg_val);
+
+                        if ((filtered_val[2] > tp_distances[2] - tp_dist_tolerance) && (filtered_val[2] < tp_distances[2] + tp_dist_tolerance))
+                        {
+                            button_clicked = 3;
+                        }
+                        angles_list_2.Clear();
+                    }
                 }
             }
         }

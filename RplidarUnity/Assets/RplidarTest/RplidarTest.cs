@@ -17,7 +17,7 @@ public class RplidarTest : MonoBehaviour
     double[] filtered_val = { 0, 0 };
 
     // number of times the value has to be repeated to be registered as precise
-    int dist_precision = 1;
+    int dist_precision = 5;
 
     // tolerances for the distance gives
     int tp_dist_tolerance = 20;
@@ -149,10 +149,13 @@ public class RplidarTest : MonoBehaviour
                         float avg_val = average(angles_list_0);
                         filtered_val[0] = (0.8 * filtered_val[0]) + (0.2 * avg_val);
 
-                        if ((filtered_val[0] < tp_distances[0] + tp_dist_tolerance) && (filtered_val[0] < tp_distances[0] - tp_dist_tolerance))
+
+                        if ((filtered_val[0] > tp_distances[0] - tp_dist_tolerance) && (filtered_val[0] < tp_distances[0] + tp_dist_tolerance))
                         {
 
-                            Debug.Log("d:" + data[i].distant + " " + data[i].theta);
+                            print("filtered_val " + filtered_val[0]);
+                            // Debug.Log("d:" + data[i].distant);
+                            print("Click at 1");
                         }
                         angles_list_0.Clear();
                     }

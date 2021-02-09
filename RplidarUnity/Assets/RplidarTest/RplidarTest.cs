@@ -12,23 +12,27 @@ public class RplidarTest : MonoBehaviour
 
 
     // distances of each touchpoint (in mm)
-    int[] tp_distances = { 360, 270, 220};
-    int[] tp_angles = { 270, 90, 0 };
+    int[] tp_distances = { 700, 700, 700 };
+    int[] tp_angles = { 210, 330, 270 };
 
-    double[] filtered_val = { 0, 0, 0};
+    double[] filtered_val = { 0, 0, 0 };
+    int[] filter_counter = { 0, 0, 0 };
+
+    // redundant true values to avoid spikes being registered as true
+    int rdc_val = 2;
 
     // number of times the value has to be repeated to be registered as precise
     int dist_precision = 5;
 
     // tolerances for the distance gives
-    int tp_dist_tolerance = 20;
-    int tp_angle_tolerance = 5;
+    int tp_dist_tolerance = 10;
+    int tp_angle_tolerance = 2;
 
     public string port = "COM8";
 
     private LidarData[] data;
 
-    public int button_clicked = 0;
+    public int button_clicked = -1;
 
     private void Awake()
     {
@@ -143,9 +147,16 @@ public class RplidarTest : MonoBehaviour
         {
             for (int i = 0; i < count; i++)
             {
+
+                // if (data[i].theta < 271 && data[i].theta > 269)
+                // {
+                //     print("DIST " + data[i].distant);
+                // }
+
                 if ((data[i].theta > tp_angles[0] - tp_angle_tolerance) && (data[i].theta < tp_angles[0] + tp_angle_tolerance))
                 {
                     angles_list_0.Add((int)data[i].distant);
+                    // print("distance: " +data[i].distant);
 
                     if (angles_list_0.Count > dist_precision)
                     {
@@ -154,10 +165,18 @@ public class RplidarTest : MonoBehaviour
 
                         if ((filtered_val[0] > tp_distances[0] - tp_dist_tolerance) && (filtered_val[0] < tp_distances[0] + tp_dist_tolerance))
                         {
-                            // print("filtered_val " + filtered_val[0]);
-                            // Debug.Log("d:" + data[i].distant);
-                            // print("Click at 1");
-                            button_clicked = 1;
+
+                            filter_counter[0]++;
+
+                            if (filter_counter[0] > rdc_val)
+                            {
+                                button_clicked = 0;
+                                print("0 at " + filtered_val[0]);
+                            }
+                        }
+                        else
+                        {
+                            filter_counter[0] = 0;
                         }
                         angles_list_0.Clear();
                     }
@@ -175,7 +194,17 @@ public class RplidarTest : MonoBehaviour
 
                         if ((filtered_val[1] > tp_distances[1] - tp_dist_tolerance) && (filtered_val[1] < tp_distances[1] + tp_dist_tolerance))
                         {
-                            button_clicked = 2;
+                            filter_counter[1]++;
+
+                            if (filter_counter[1] > rdc_val)
+                            {
+                                button_clicked = 1;
+                                print("1 at " + filtered_val[1]);
+                            }
+                        }
+                        else
+                        {
+                            filter_counter[1] = 0;
                         }
                         angles_list_1.Clear();
                     }
@@ -190,9 +219,20 @@ public class RplidarTest : MonoBehaviour
                         float avg_val = average(angles_list_2);
                         filtered_val[2] = (0.8 * filtered_val[2]) + (0.2 * avg_val);
 
+                        // print(filtered_val[2]);
                         if ((filtered_val[2] > tp_distances[2] - tp_dist_tolerance) && (filtered_val[2] < tp_distances[2] + tp_dist_tolerance))
                         {
-                            button_clicked = 3;
+                            filter_counter[2]++;
+
+                            if (filter_counter[2] > rdc_val)
+                            {
+                                button_clicked = 2;
+                                print("2 at " + filtered_val[2]);
+                            }
+                        }
+                        else
+                        {
+                            filter_counter[2] = 0;
                         }
                         angles_list_2.Clear();
                     }
